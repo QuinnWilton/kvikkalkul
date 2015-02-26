@@ -5,8 +5,11 @@ module Kvikkalkul
     class UnknownTokenError < RuntimeError; end
 
     def lex(data)
-      characters = data.split('')
-      characters.map { |char| tokenize(char) }
+      tokens = data.split('')
+                   .map { |char| tokenize(char) }
+
+      split_on_token(tokens, Token::NEWLINE)
+        .map { |line| split_on_token(line, Token::SPACE) }
     end
 
     private
@@ -41,7 +44,7 @@ module Kvikkalkul
         Token::PERIOD
       when ","
         Token::COMMA
-      when "\'"
+      when "\""
         Token::QUOTE
       when ":"
         Token::COLON
@@ -56,6 +59,22 @@ module Kvikkalkul
       else
         raise UnknownTokenError, "Unknown token: #{character}"
       end
+    end
+
+    def split_on_token(tokens, delimiter)
+      puts tokens
+      results, arr = [[]], tokens.dup
+      until arr.empty?
+        if (idx = arr.index(delimiter))
+          results.last.concat(arr.shift(idx))
+          arr.shift
+          results << []
+        else
+          results.last.concat(arr.shift(arr.size))
+        end
+      end
+
+      results
     end
   end
 end
